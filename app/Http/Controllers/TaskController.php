@@ -65,7 +65,7 @@ class TaskController extends Controller
             'completed'=>'boolean'
         ]);
         $task->update($validated);
-        return redirect()->route('task.index')
+        return redirect()->route('tasks.index')
             ->with ('success', 'Taskupdated sucessfully.');
     }
 
@@ -75,7 +75,7 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $task -> delete();
-        return redirect()->route('task.index')
+        return redirect()->route('tasks.index')
             ->with ('sucess', 'Task deleted successfully');
     }
 }

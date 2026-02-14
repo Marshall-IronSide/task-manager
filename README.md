@@ -1,59 +1,210 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Task Manager
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A clean, modern task management application built with **Laravel 12**, **Vite**, and **Tailwind CSS**. Create, organize, and track your tasks with a simple resource-based REST API.
 
-## About Laravel
+## Quick Start
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Prerequisites
+- PHP 8.2+
+- Composer
+- Node.js & npm
+- SQLite (included by default)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Setup
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+# Clone the repo
+git clone <repo-url>
+cd task-manager
 
-## Learning Laravel
+# Install and configure everything
+composer run setup
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+This command will:
+- Install PHP dependencies via Composer
+- Generate `.env` from `.env.example`
+- Create SQLite database
+- Generate APP_KEY
+- Run migrations
+- Install npm packages
+- Build assets
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Development
 
-## Laravel Sponsors
+```bash
+composer run dev
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Starts the development environment with:
+- **PHP Server:** http://localhost:8000
+- **Vite Dev Server:** Hot module reloading for CSS/JS
+- **Queue Listener:** Background job processing
+- **Log Viewer:** Real-time app logs via pail
 
-### Premium Partners
+### Testing
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+composer run test
+```
 
-## Contributing
+Runs PHPUnit test suite with in-memory SQLite database.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## Architecture
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Resource-Based Design
+The app uses Laravel's **resource controller pattern** for clean CRUD routing:
 
-## Security Vulnerabilities
+| Method | Route | Handler |
+|--------|-------|---------|
+| GET | `/tasks` | index() - List all tasks |
+| GET | `/tasks/{task}` | show() - View single task |
+| GET | `/tasks/create` | create() - Show create form |
+| POST | `/tasks` | store() - Save new task |
+| GET | `/tasks/{task}/edit` | edit() - Show edit form |
+| PUT | `/tasks/{task}` | update() - Save changes |
+| DELETE | `/tasks/{task}` | destroy() - Delete task |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Data Model
+
+**Task** ([app/Models/Task.php](app/Models/Task.php)):
+```php
+- id          (primary key)
+- title       (string, required)
+- description (text, nullable)
+- completed   (boolean, default: false)
+- created_at, updated_at
+```
+
+Mass-assignable fields: `['title', 'description', 'completed']`  
+Auto-casts: `completed` → boolean
+
+### Project Structure
+
+```
+app/
+  Http/Controllers/TaskController.php    # All CRUD logic & validation
+  Models/Task.php                        # Task model with casts
+
+database/
+  migrations/...create_tasks_table.php   # Schema definition
+
+routes/
+  web.php                                # Resource routing
+
+resources/
+  views/tasks/                           # Blade templates
+    - index.blade.php
+    - create.blade.php
+    - edit.blade.php
+    - show.blade.php
+  css/app.css                            # Tailwind styles
+  js/app.js                              # JavaScript entry
+
+tests/
+  Feature/                               # HTTP/integration tests
+  Unit/                                  # Logic tests
+```
+
+---
+
+## Development Patterns
+
+### Validation
+Inline validation in controller methods using `$request->validate()`:
+```php
+$validated = $request->validate([
+    'title' => 'required|max:225',
+    'description' => 'nullable',
+    'completed' => 'boolean'
+]);
+Task::create($validated);
+```
+
+### Model Binding
+Route parameters automatically resolve to model instances:
+```php
+// Route: /tasks/{task}
+public function show(Task $task) {
+    return view('tasks.show', compact('task')); // $task is auto-injected
+}
+```
+
+### Flash Messages
+Redirect with user feedback:
+```php
+return redirect()->route('tasks.index')
+    ->with('success', 'Task created successfully.');
+```
+
+### Eloquent Queries
+```php
+Task::all()                              # All tasks
+Task::orderBy('created_at', 'desc')     # Newest first
+Task::where('completed', true)->get()   # Filtered
+$task->update(['completed' => true])    # Update instance
+$task->delete()                         # Delete instance
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+Key `.env` settings:
+```
+APP_ENV=local
+APP_DEBUG=true
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+```
+
+Switch to MySQL by updating `DB_*` variables.
+
+### Asset Pipeline
+- **CSS:** Tailwind v4 via `@tailwindcss/vite` plugin
+- **JS:** ES modules with Vite
+- **Build:** `npm run build` (production), `npm run dev` (dev with HMR)
+
+---
+
+## Known Issues & Roadmap
+
+### Current Limitations
+- [ ] Task views (index, create, edit, show) not yet implemented
+- [ ] Route name typos in redirects: `task.index` → should be `tasks.index`
+- [ ] No user-task relationship (single-tenant only)
+- [ ] No authentication middleware on routes
+
+### Planned Features
+- [ ] Multi-user support with task assignment
+- [ ] Task priorities and due dates
+- [ ] Categories/tags for organization
+- [ ] Task filtering and search
+
+---
+
+## Testing
+
+Write feature tests in `tests/Feature/`:
+```php
+public function test_can_create_task()
+{
+    $response = $this->post('/tasks', [
+        'title' => 'My Task',
+        'description' => 'Do something'
+    ]);
+    
+    $this->assertDatabaseHas('tasks', ['title' => 'My Task']);
+}
+```
+
+Test database is in-memory SQLite—no separate config needed.
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT License. See LICENSE file for details.
