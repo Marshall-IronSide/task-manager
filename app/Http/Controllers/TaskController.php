@@ -66,7 +66,7 @@ class TaskController extends Controller
         ]);
         $task->update($validated);
         return redirect()->route('tasks.index')
-            ->with ('success', 'Taskupdated sucessfully.');
+            ->with ('success', 'Task updated successfully.');
     }
 
     /**
@@ -76,6 +76,6 @@ class TaskController extends Controller
     {
         $task -> delete();
         return redirect()->route('tasks.index')
-            ->with ('sucess', 'Task deleted successfully');
+            ->with ('success', 'Task deleted successfully');
     }
 }
