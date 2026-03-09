@@ -12,8 +12,8 @@ class TaskController extends Controller
      */
     public function index()
     {
-        $tasks = Task::orderBy('created_at','desc')-> get();
-        return view('tasks.index',compact('tasks'));
+        $tasks = Task::orderBy('created_at', 'desc')->get();
+        return view('tasks.index', compact('tasks'));
     }
 
     /**
@@ -30,12 +30,12 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([ //$request->validate() - Validates user input
-            'title'=>'required|max:225',
-            'description'=>'nullable'
+            'title' => 'required|max:225',
+            'description' => 'nullable'
         ]);
         Task::create($validated);  //Task::create() - Creates new record
         return redirect()->route('tasks.index')
-        ->with ('success', 'Task created successfully.');
+            ->with('success', 'Task created successfully.');
     }
 
     /**
@@ -60,13 +60,13 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         $validated = $request->validate([
-            'title'=>'required|max:225',
-            'description'=>'nullable',
-            'completed'=>'boolean'
+            'title' => 'required|max:225',
+            'description' => 'nullable',
+            'completed' => 'boolean'
         ]);
         $task->update($validated);
         return redirect()->route('tasks.index')
-            ->with ('success', 'Task updated successfully.');
+            ->with('success', 'Task updated successfully.');
     }
 
     /**
@@ -74,8 +74,8 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        $task -> delete();
+        $task->delete();
         return redirect()->route('tasks.index')
-            ->with ('success', 'Task deleted successfully');
+            ->with('success', 'Task deleted successfully');
     }
 }
